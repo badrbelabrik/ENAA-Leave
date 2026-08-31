@@ -12,25 +12,25 @@ class DepartmentSeeder extends Seeder
         Department::insert([
             [
                 'name' => 'Administration',
-                'description' => 'Équipe administrative',
+                'description' => 'Administrative team',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Technique',
-                'description' => 'Équipe technique',
+                'name' => 'Technical',
+                'description' => 'Technical team',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Pédagogie',
-                'description' => 'Corps professoral',
+                'name' => 'Teaching',
+                'description' => 'Teaching staff',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Ressources Humaines',
-                'description' => 'Service RH',
+                'name' => 'Human Resources',
+                'description' => 'Human Resources department',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

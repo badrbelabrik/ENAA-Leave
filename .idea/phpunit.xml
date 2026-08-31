@@ -5,6 +5,8 @@
       <list>
         <option value="$PROJECT_DIR$/enaa-laravel_api/tests/Unit" />
         <option value="$PROJECT_DIR$/enaa-laravel_api/tests/Feature" />
+        <option value="$PROJECT_DIR$/enaa-laravel-api/tests/Unit" />
+        <option value="$PROJECT_DIR$/enaa-laravel-api/tests/Feature" />
       </list>
     </option>
   </component>
