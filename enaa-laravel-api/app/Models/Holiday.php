@@ -12,7 +12,6 @@ class Holiday extends Model
     protected $fillable = [
         'name',
         'date',
-        'description',
     ];
 
     protected function casts(): array
