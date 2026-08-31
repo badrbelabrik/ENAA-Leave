@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use App\Enums\LeaveDurationType;
+use App\Enums\LeaveRequestStatus;
 class LeaveRequest extends Model
 {
     use HasFactory;
@@ -31,6 +32,8 @@ class LeaveRequest extends Model
             'end_date' => 'date',
             'total_days' => 'decimal:2',
             'approved_at' => 'datetime',
+            'duration_type' => LeaveDurationType::class,
+            'status' => LeaveRequestStatus::class,
         ];
     }
 

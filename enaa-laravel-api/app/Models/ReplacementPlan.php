@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ReplacementPlanType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,7 @@ class ReplacementPlan extends Model
     {
         return [
             'catch_up_date' => 'date',
+            'type' => ReplacementPlanType::class,
         ];
     }
 
