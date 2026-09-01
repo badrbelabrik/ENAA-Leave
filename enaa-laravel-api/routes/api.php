@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\LeaveApprovalController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LeaveRequestController;
 
@@ -30,5 +31,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete(
         '/leave-requests/{leaveRequest}',
         [LeaveRequestController::class, 'destroy']
+    );
+
+    Route::post(
+        '/leave-requests/{leaveRequest}/approve',
+        [LeaveApprovalController::class, 'approve']
+    );
+
+    Route::post(
+        '/leave-requests/{leaveRequest}/reject',
+        [LeaveApprovalController::class, 'reject']
     );
 });
