@@ -7,11 +7,28 @@ use App\Http\Controllers\Api\LeaveRequestController;
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::get('/me', [AuthController::class, 'me']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::post(
         '/leave-requests',
         [LeaveRequestController::class, 'store']
+    );
+
+    Route::get(
+        '/leave-requests',
+        [LeaveRequestController::class, 'index']
+    );
+
+    Route::get(
+        '/leave-requests/{leaveRequest}',
+        [LeaveRequestController::class, 'show']
+    );
+
+    Route::delete(
+        '/leave-requests/{leaveRequest}',
+        [LeaveRequestController::class, 'destroy']
     );
 });

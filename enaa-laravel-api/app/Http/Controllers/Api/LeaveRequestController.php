@@ -13,6 +13,43 @@ use Illuminate\Support\Facades\DB;
 
 class LeaveRequestController extends Controller
 {
+    public function index()
+    {
+        $user = request()->user();
+
+        $leaveRequests = LeaveRequest::with([
+            'leaveType',
+            'replacementPlan',
+        ])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'leave_requests' => $leaveRequests,
+        ]);
+    }
+
+    public function show(LeaveRequest $leaveRequest)
+    {
+        $user = request()->user();
+
+        if ($leaveRequest->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to view this leave request.',
+            ], 403);
+        }
+
+        $leaveRequest->load([
+            'leaveType',
+            'replacementPlan',
+            'approvals',
+        ]);
+
+        return response()->json([
+            'leave_request' => $leaveRequest,
+        ]);
+    }
     public function store(
         StoreLeaveRequestRequest $request,
         LeaveCalculatorService $calculator
@@ -130,5 +167,33 @@ class LeaveRequestController extends Controller
                 'replacementPlan',
             ]),
         ], 201);
+    }
+
+    public function destroy(LeaveRequest $leaveRequest)
+    {
+        $user = request()->user();
+
+        if ($leaveRequest->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to cancel this leave request.',
+            ], 403);
+        }
+
+        if (!in_array($leaveRequest->status, [
+            'pending_manager',
+            'pending_hr',
+        ])) {
+            return response()->json([
+                'message' => 'This leave request cannot be cancelled.',
+            ], 422);
+        }
+
+        $leaveRequest->update([
+            'status' => 'cancelled',
+        ]);
+
+        return response()->json([
+            'message' => 'Leave request cancelled successfully.',
+        ]);
     }
 }
