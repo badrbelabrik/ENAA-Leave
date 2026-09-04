@@ -17,11 +17,65 @@ class LeaveRequestController extends Controller
     {
         $user = request()->user();
 
-        $leaveRequests = LeaveRequest::with([
+        $query = LeaveRequest::with([
+            'user.department',
             'leaveType',
             'replacementPlan',
-        ])
-            ->where('user_id', $user->id)
+            'approvals.approver',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Employee / Trainer
+        |--------------------------------------------------------------------------
+        | See only their own requests.
+        */
+        if ($user->hasAnyRole(['employee', 'trainer'])) {
+
+            $query->where('user_id', $user->id);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Manager
+        |--------------------------------------------------------------------------
+        | See requests waiting for manager approval.
+        */
+        elseif ($user->hasRole('manager')) {
+
+            $query->where('status', 'pending_manager');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HR
+        |--------------------------------------------------------------------------
+        | See requests waiting for HR approval.
+        */
+        elseif ($user->hasRole('hr')) {
+
+            $query->where('status', 'pending_hr');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin
+        |--------------------------------------------------------------------------
+        | Admin can see all requests.
+        */
+        elseif ($user->hasRole('admin')) {
+
+            // No additional filter.
+        }
+
+        else {
+
+            return response()->json([
+                'message' => 'You are not authorized to view leave requests.',
+            ], 403);
+        }
+
+        $leaveRequests = $query
             ->latest()
             ->paginate(10);
 
@@ -196,4 +250,22 @@ class LeaveRequestController extends Controller
             'message' => 'Leave request cancelled successfully.',
         ]);
     }
+
+    public function pendingForHr()
+    {
+        $leaveRequests = LeaveRequest::with([
+            'user',
+            'leaveType',
+            'replacementPlan',
+            'approvals.approver',
+        ])
+            ->where('status', 'pending_hr')
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'leave_requests' => $leaveRequests,
+        ]);
+    }
+
 }

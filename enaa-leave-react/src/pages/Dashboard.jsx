@@ -13,7 +13,7 @@ function Dashboard({ user }) {
                 console.log('Leave requests:', data);
 
                 setLeaveRequests(
-                    data.leave_requests ?? data
+                    data.leave_requests?.data ?? data.leave_requests ?? []
                 );
             } catch (error) {
                 console.error(

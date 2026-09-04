@@ -1,214 +1,169 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../services/authService';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-function Login() {
+const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
-    const [form, setForm] = useState({
-        email: '',
-        password: '',
-    });
-
-    const [error, setError] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        });
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        setError('');
+        setError("");
         setLoading(true);
 
         try {
-            await login(form.email, form.password);
+            const user = await login(email, password);
 
-            navigate('/dashboard');
-        } catch (err) {
-            console.error(err);
+            console.log("Authenticated user:", user);
 
-            setError(
-                err.response?.data?.message ||
-                'Invalid email or password.'
-            );
+            const role = user?.roles?.[0];
+
+            switch (role) {
+                case "employee":
+                    navigate("/employee-dashboard", { replace: true });
+                    break;
+
+                case "manager":
+                    navigate("/manager-dashboard", { replace: true });
+                    break;
+
+                case "hr":
+                    navigate("/hr-dashboard", { replace: true });
+                    break;
+
+                case "admin":
+                    navigate("/admin-dashboard", { replace: true });
+                    break;
+
+                default:
+                    setError("Votre rôle utilisateur n'est pas reconnu.");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+
+            if (error.response?.status === 422) {
+                setError("Email ou mot de passe incorrect.");
+            } else {
+                setError(
+                    error.response?.data?.message ||
+                    "Une erreur est survenue. Veuillez réessayer."
+                );
+            }
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
 
-            {/* Left side */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-500 text-white relative overflow-hidden">
+            <div className="w-full max-w-md">
 
-                {/* Decorative circles */}
-                <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-white/10" />
-                <div className="absolute bottom-[-100px] right-[-80px] w-96 h-96 rounded-full bg-white/10" />
-
-                <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-
-                    {/* Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-white text-indigo-600 flex items-center justify-center font-bold text-xl shadow-lg">
-                            E
-                        </div>
-
-                        <div>
-                            <h1 className="text-xl font-bold">
-                                ENAA Leave
-                            </h1>
-                            <p className="text-sm text-indigo-100">
-                                Leave Management System
-                            </p>
-                        </div>
+                {/* Logo */}
+                <div className="text-center mb-8">
+                    <div className="mx-auto mb-4 w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
+                        E
                     </div>
 
-                    {/* Main message */}
-                    <div className="max-w-lg">
-                        <h2 className="text-5xl font-bold leading-tight mb-6">
-                            Manage your leave
-                            <br />
-                            <span className="text-indigo-200">
-                                with simplicity.
-                            </span>
-                        </h2>
+                    <h1 className="text-3xl font-bold text-slate-900">
+                        ENAA Leave
+                    </h1>
 
-                        <p className="text-lg text-indigo-100 leading-relaxed">
-                            Request, track and manage your leave
-                            requests from one simple platform.
-                        </p>
-
-                        <div className="mt-8 flex gap-3 flex-wrap">
-                            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm">
-                                ✓ Easy requests
-                            </span>
-
-                            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm">
-                                ✓ Approval workflow
-                            </span>
-
-                            <span className="px-4 py-2 rounded-full bg-white/10 border border-white/20 text-sm">
-                                ✓ Leave tracking
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <p className="text-sm text-indigo-200">
-                        © {new Date().getFullYear()} ENAA — Leave Management
+                    <p className="text-slate-500 mt-2">
+                        Leave Management System
                     </p>
                 </div>
-            </div>
 
-            {/* Right side */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6">
+                {/* Card */}
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
 
-                <div className="w-full max-w-md">
-
-                    {/* Mobile logo */}
-                    <div className="lg:hidden flex items-center gap-3 mb-10">
-                        <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl">
-                            E
-                        </div>
-
-                        <div>
-                            <h1 className="text-xl font-bold text-slate-900">
-                                ENAA Leave
-                            </h1>
-                            <p className="text-sm text-slate-500">
-                                Leave Management System
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-slate-900">
-                            Welcome back 👋
+                    <div className="mb-7">
+                        <h2 className="text-2xl font-bold text-slate-900">
+                            Welcome back
                         </h2>
 
-                        <p className="text-slate-500 mt-2">
-                            Sign in to manage your leave requests.
+                        <p className="text-sm text-slate-500 mt-1">
+                            Sign in to access your account
                         </p>
                     </div>
+
+                    {/* Error */}
+                    {error && (
+                        <div className="mb-5 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                            {error}
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-5">
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label
+                                htmlFor="email"
+                                className="block text-sm font-semibold text-slate-700 mb-2"
+                            >
                                 Email address
                             </label>
 
                             <input
+                                id="email"
                                 type="email"
-                                name="email"
-                                value={form.email}
-                                onChange={handleChange}
-                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="employee@enaa.local"
                                 required
-                                className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                                autoComplete="email"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
                             />
                         </div>
 
                         {/* Password */}
                         <div>
-                            <div className="flex justify-between mb-2">
-                                <label className="block text-sm font-medium text-slate-700">
-                                    Password
-                                </label>
-
-                                <button
-                                    type="button"
-                                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-                                >
-                                    Forgot password?
-                                </button>
-                            </div>
+                            <label
+                                htmlFor="password"
+                                className="block text-sm font-semibold text-slate-700 mb-2"
+                            >
+                                Password
+                            </label>
 
                             <input
+                                id="password"
                                 type="password"
-                                name="password"
-                                value={form.password}
-                                onChange={handleChange}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 required
-                                className="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                                autoComplete="current-password"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
                             />
                         </div>
-
-                        {/* Error */}
-                        {error && (
-                            <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600">
-                                {error}
-                            </div>
-                        )}
 
                         {/* Submit */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold transition shadow-lg shadow-indigo-600/20"
+                            className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition shadow-lg shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Signing in...' : 'Sign in'}
+                            {loading ? "Signing in..." : "Sign in"}
                         </button>
 
                     </form>
 
-                    <p className="text-center text-sm text-slate-500 mt-8">
-                        ENAA Leave Management System
-                    </p>
-
                 </div>
+
+                <p className="text-center text-xs text-slate-400 mt-6">
+                    ENAA Leave Management System
+                </p>
+
             </div>
         </div>
     );
-}
+};
 
 export default Login;

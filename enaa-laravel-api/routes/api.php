@@ -13,6 +13,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    Route::get(
+        '/hr/leave-requests',
+        [LeaveRequestController::class, 'pendingForHr']
+    )->middleware('role:hr');
+
     Route::post(
         '/leave-requests',
         [LeaveRequestController::class, 'store']

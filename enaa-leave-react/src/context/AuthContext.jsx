@@ -1,61 +1,120 @@
-import { createContext, useEffect, useState } from "react";
-import api from "../services/api";
+import {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
-export const AuthContext = createContext(null);
+import {
+    loginRequest,
+    getCurrentUser,
+    logoutRequest,
+} from "../services/authService";
 
-export function AuthProvider({ children }) {
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    /**
+     * Check if the user already has a valid token
+     * when the application starts.
+     */
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
+        const checkAuthentication = async () => {
+            const token = localStorage.getItem("token");
 
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
+            if (!token) {
+                setLoading(false);
+                return;
+            }
 
-        setLoading(false);
+            try {
+                const currentUser = await getCurrentUser();
+
+                setUser(currentUser);
+            } catch (error) {
+                console.error(
+                    "Authentication check failed:",
+                    error
+                );
+
+                // Token is invalid or expired
+                localStorage.removeItem("token");
+                setUser(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        checkAuthentication();
     }, []);
 
+    /**
+     * Login user
+     */
     const login = async (email, password) => {
-        const response = await api.post("/login", {
-            email,
-            password,
-        });
+        const data = await loginRequest(email, password);
 
-        const { token, user } = response.data;
+        // Store Sanctum token
+        localStorage.setItem("token", data.token);
 
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
+        // Store authenticated user
+        setUser(data.user);
 
-        setUser(user);
-
-        return response.data;
+        return data.user;
     };
 
+    /**
+     * Logout user
+     */
     const logout = async () => {
         try {
-            await api.post("/logout");
+            // Tell Laravel to invalidate the current token
+            await logoutRequest();
         } catch (error) {
-            console.error("Logout error:", error);
+            console.error(
+                "Logout request failed:",
+                error
+            );
         } finally {
+            // Always remove the local token
             localStorage.removeItem("token");
-            localStorage.removeItem("user");
+
+            // Remove user from React state
             setUser(null);
         }
     };
 
+    const value = {
+        user,
+        loading,
+        login,
+        logout,
+        isAuthenticated: !!user,
+    };
+
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                login,
-                logout,
-                loading,
-                isAuthenticated: !!user,
-            }}
-        >
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
-}
+};
+
+/**
+ * Custom hook
+ */
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error(
+            "useAuth must be used inside an AuthProvider"
+        );
+    }
+
+    return context;
+};
+
+export default AuthContext;

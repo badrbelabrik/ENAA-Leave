@@ -1,26 +1,46 @@
-import api from "../api/axios";
+import axios from "axios";
 
-export const login = async (email, password) => {
+const API_URL = "http://127.0.0.1:8000/api";
+
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+    },
+});
+
+// Automatically attach the Sanctum token to every request
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+/**
+ * Login
+ */
+export const loginRequest = async (email, password) => {
     const response = await api.post("/login", {
         email,
         password,
     });
 
-    const { token, user } = response.data;
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    return user;
+    return response.data;
 };
 
-export const logout = async () => {
-    await api.post("/logout");
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-};
-
+/**
+ * Get the currently authenticated user
+ */
 export const getCurrentUser = async () => {
     const response = await api.get("/me");
 
@@ -28,3 +48,14 @@ export const getCurrentUser = async () => {
 
     return response.data.user;
 };
+
+/**
+ * Logout
+ */
+export const logoutRequest = async () => {
+    const response = await api.post("/logout");
+
+    return response.data;
+};
+
+export default api;
